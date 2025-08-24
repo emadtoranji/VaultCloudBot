@@ -1,0 +1,7 @@
+{
+  "start_message": "Welcome to VaultCloudBot",
+  "start_menu_button": "Start Menu",
+  "admin_menu_button": "Admin Menu",
+  "admin_menu_message": "Welcome to Admin Menu",
+  "wrong_command": "Wrong Command"
+}
