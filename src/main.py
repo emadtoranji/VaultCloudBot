@@ -1,3 +1,4 @@
+import traceback
 from src.bot.telegram import TelegramBase
 from src.bot.telegram_api import TelegramAPI
 from src.database.models import init_database
@@ -17,5 +18,6 @@ def application(environ, start_response):
         return [b"Script executed successfully"]
     except Exception as e:
         msg = f"Error occurred: {str(e)}"
-        TelegramAPI().bug_report(msg)
+        details = traceback.format_exc()
+        TelegramAPI().bug_report(f"\n{msg}\n\n{details}")
         return [msg.encode()]

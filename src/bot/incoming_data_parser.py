@@ -7,6 +7,7 @@ class TelegramIncomingDataParser:
         self.member_info = {}
         self.member_id = None
         self.chat_id = None
+        self.is_here = 'main_menu'
         self.chat_method = None
         self.chat_type = None
         self.user_id = None

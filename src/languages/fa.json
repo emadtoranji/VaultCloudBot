@@ -1,7 +1,21 @@
 {
-  "start_message": "Welcome to VaultCloudBot",
-  "start_menu_button": "Start Menu",
-  "admin_menu_button": "Admin Menu",
-  "admin_menu_message": "Welcome to Admin Menu",
-  "wrong_command": "Wrong Command"
+  "global_section": {
+    "start_message": "خوش آمدید به VaultCloudBot",
+    "start_menu_button": "منوی شروع",
+    "return_to_start_menu_button": "بازگشت به منوی شروع",
+    "wrong_command": "دستور نامعتبر"
+  },
+  "admin_section": {
+    "admin_menu_button": "منوی مدیریت",
+    "admin_menu_message": "به منوی مدیریت خوش آمدید",
+    "return_to_admin_menu_message": "بازگشت به منوی مدیریت",
+    "add_a_new_file": "افزودن فایل جدید",
+    "add_a_new_file_message": "۱ تا ۱۰ فایل ارسال کنید\n\nتوجه: اسناد و فایل‌های صوتی فقط می‌توانند در یک آلبوم با پیام‌های هم‌نوع گروه‌بندی شوند.",
+    "add_a_new_file_count_left_allowed": "می‌توانید %left_count% فایل دیگر ارسال کنید، یا روی دکمه «اتمام و ایجاد لینک یکتا» بزنید",
+    "add_a_new_file_got_unsupported_data": "این فایل پشتیبانی نمی‌شود، لطفاً با فایل دیگری دوباره امتحان کنید",
+    "add_a_new_file_finish_button": "اتمام و ایجاد لینک یکتا",
+    "add_a_new_file_finish_message": "آفرین!\n\nرکورد جدید با موفقیت در دیتابیس ذخیره شد، این رکورد شامل %file_count% فایل است.\n\nلینک عمومی:\n%unique_url%"
+  },
+  "developer_section": {
+  }
 }

@@ -1,0 +1,21 @@
+{
+  "global_section": {
+    "start_message": "Welcome to VaultCloudBot",
+    "start_menu_button": "Start Menu",
+    "return_to_start_menu_button": "Return To Start Menu",
+    "wrong_command": "Wrong Command"
+  },
+  "admin_section": {
+    "admin_menu_button": "Admin Menu",
+    "admin_menu_message": "Welcome to Admin Menu",
+    "return_to_admin_menu_message": "Return To Admin Menu",
+    "add_a_new_file": "Add New File",
+    "add_a_new_file_message": "Send 1 to 10 files\n\nNote: Documents and audio files can be only grouped in an album with messages of the same type.",
+    "add_a_new_file_count_left_allowed": "You can send %left_count% more, Or tap the 'Finish and Create Unique URL' button",
+    "add_a_new_file_got_unsupported_data": "This is file is not supported, please try again with another file",
+    "add_a_new_file_finish_button": "Finish and Create Unique URL",
+    "add_a_new_file_finish_message": "Well Done !\n\nNew record imported to database successfully, This record has %file_count% file(s).\n\nPublic URL:\n%unique_url%"
+  },
+  "developer_section": {
+  }
+}

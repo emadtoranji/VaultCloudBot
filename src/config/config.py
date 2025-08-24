@@ -15,6 +15,9 @@ DEVELOPER_CHAT_ID = 854032047
 # ACCESS CONFIGS
 ADMIN_CHAT_ID = 854032047
 
+# Set Bot Language (1.en 2.fa)
+BOT_LANGUAGE = 'EN'
+
 # Database Connection
 DB_ADDR = 'localhost'
 DB_NAME = ''

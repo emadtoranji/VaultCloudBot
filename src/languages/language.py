@@ -1,9 +1,13 @@
 import json
 import os
 
+from src.config.config import BOT_LANGUAGE
+
 
 class Language:
-    def __init__(self, lang='FA'):
+    def __init__(self, lang=None):
+        if lang is None:
+            lang = BOT_LANGUAGE
         self.lang = lang
         self.data = {}
         self.__export_language()
