@@ -83,6 +83,9 @@ class TelegramBase(TelegramIncomingDataParser, ABC):
     def create_public_unique_url(db_id):
         return f'https://t.me/{TELEGRAM_USERNAME}/?start=file_{db_id}'
 
+    def change_is_here(self, __is_here):
+        self.member_info.update_member_info(is_here=__is_here)
+
 
 class TelegramTypePrivate(TelegramBase):
     """
@@ -95,15 +98,26 @@ class TelegramTypePrivate(TelegramBase):
         if self.chat_method in ('message', 'callback') and self.is_block is False:
             self.user_section()
 
-    def __send_wrong_command(self):
+    def __send_wrong_command(self, custom_message=''):
         self.telegram_api.send_message(
             chat_id=self.chat_id,
-            text=self.language.get('global_section', {}).get('wrong_command', 'Wrong Command'),
+            text=self.language.get('global_section', {}).get('wrong_command', 'Wrong Command') +
+                 (('\n\n' + custom_message) if custom_message else ''),
             reply_markup=self.replyMarkup.start()
         )
 
+    def __send_unknown_problem(self, custom_message='', reply_markup=None):
+        self.telegram_api.send_message(
+            chat_id=self.chat_id,
+            text=self.language.get('general_section', {}).get('unknown_problem', 'Unknown problem') +
+                 (('\n\n' + custom_message) if custom_message else ''),
+            reply_markup=reply_markup if reply_markup is not None else self.replyMarkup.return_to_admin()
+        )
+
     def handle_add_a_new_file_finish(self, __db_recent_files_id, __db_id):
-        Files.update(status='100').where(Files.id == __db_id).execute()
+        self.change_is_here('main_menu')
+        if Files.update(status='100').where(Files.id == __db_id).execute() == 0:
+            return False
         self.telegram_api.send_message(
             chat_id=self.chat_id,
             text=self.language.get('admin_section', {}).get(
@@ -112,66 +126,88 @@ class TelegramTypePrivate(TelegramBase):
             .replace('%unique_url%', self.create_public_unique_url(__db_id)),
             reply_markup=self.replyMarkup.admin()
         )
+        return True
+
+    def handle_get_a_file(self, db_id=None):
+        self.change_is_here('main_menu')
+        if db_id:
+            __db_data = Files.select(Files.file_ids).where(Files.id == db_id).first()
+            if __db_data:
+                __db_recent_files_id = __db_data.get_file_ids()
+                if len(__db_recent_files_id):
+                    for file_data in __db_recent_files_id:
+                        file_data['data']['chat_id'] = self.chat_id
+                        self.telegram_api.send_request_to_api(
+                            method=f"send{file_data['method']}",
+                            data=file_data['data']
+                        )
+                    return
+        self.telegram_api.send_message(self.chat_id, text=self.language.get('global_section', {}).get(
+            'file_not_found', 'File not found.'
+        ))
 
     def handle_add_a_new_file(self, __db_id=None):
-
         __correct_file = True
         __db_data = None
         __file_method = None
-        __file_id = None
+        __file_data = None
         __db_recent_files_id = []
+
         if __db_id:
             __db_data = Files.select(Files.file_ids).where(Files.id == __db_id).first()
-            __db_recent_files_id = __db_data.get_file_ids()
+            if __db_data:
+                __db_recent_files_id = __db_data.get_file_ids()
+            else:
+                return False
 
         if self.text in (
                 self.language.get('admin_section', {}).get(
                     'add_a_new_file_finish_button', '/admin_add_a_new_file_finish'
                 ), '/admin_add_a_new_file_finish'):
-            self.handle_add_a_new_file_finish(__db_recent_files_id, __db_id)
-            return
+            return self.handle_add_a_new_file_finish(__db_recent_files_id, __db_id)
 
         if self.photo_id:
             __file_method = 'photo'
-            __file_id = self.photo_id
-        elif self.text:
-            __file_method = 'message'
-            __file_id = self.text
+            __file_data = {'photo': self.photo_id, 'caption': self.caption}
         elif self.video_id:
             __file_method = 'video'
-            __file_id = self.video_id
+            __file_data = {'video': self.video_id, 'caption': self.caption}
         elif self.audio_id:
             __file_method = 'audio'
-            __file_id = self.audio_id
+            __file_data = {'audio': self.audio_id, 'caption': self.caption}
         elif self.document_id:
             __file_method = 'document'
-            __file_id = self.document_id
-        elif self.voice_id:
-            __file_method = 'voice'
-            __file_id = self.voice_id
-        elif self.sticker_id:
-            __file_method = 'sticker'
-            __file_id = self.sticker_id
+            __file_data = {'document': self.document_id, 'caption': self.caption}
         elif self.animation_id:
             __file_method = 'animation'
-            __file_id = self.animation_id
+            __file_data = {'animation': self.animation_id, 'caption': self.caption}
+        elif self.text:
+            __file_method = 'message'
+            __file_data = {'text': self.text}
+        elif self.voice_id:
+            __file_method = 'voice'
+            __file_data = {'voice': self.voice_id}
+        elif self.sticker_id:
+            __file_method = 'sticker'
+            __file_data = {'sticker': self.sticker_id}
         else:
             __correct_file = False
 
         if __correct_file:
             if __db_data is None:
                 __db_id = generate_random_string(include_lower=True, include_upper=False, length=16)
-                Files.insert(id=__db_id, creator_member_id=self.member_id).execute()
+                if not Files.insert(id=__db_id, creator_member_id=self.member_id).execute():
+                    return False
                 self.member_info.update_member_info(is_here=f'add_a_new_file_{__db_id}')
 
             __db_recent_files_id += [{
                 'method': __file_method,
-                'file_id': __file_id
+                'data': __file_data
             }]
-            Files.update(file_ids=json.dumps(__db_recent_files_id)).where(Files.id == __db_id).execute()
-
+            if Files.update(file_ids=json.dumps(__db_recent_files_id)).where(Files.id == __db_id).execute() == 0:
+                return False
             if len(__db_recent_files_id) >= self.__maximum_files_for_each_files_record:
-                self.handle_add_a_new_file_finish(__db_recent_files_id, __db_id)
+                return self.handle_add_a_new_file_finish(__db_recent_files_id, __db_id)
             else:
                 self.telegram_api.send_message(
                     chat_id=self.chat_id,
@@ -190,14 +226,18 @@ class TelegramTypePrivate(TelegramBase):
                 ).replace('%left_count%', '9'),
                 reply_markup=self.replyMarkup.add_a_new_file_finish_button()
             )
+        return True
 
     def user_section(self):
         if self.text in (self.language.get('global_section', {}).get('start_menu_button', '/start'), '/start'):
+            self.change_is_here('main_menu')
             self.telegram_api.send_message(
                 chat_id=self.chat_id,
                 text=self.language.get('global_section', {}).get('start_message', 'Welcome'),
                 reply_markup=self.replyMarkup.start()
             )
+        elif m := re.search(r'^/start file(?:_(\w+))?$', self.text):
+            self.handle_get_a_file(m.group(1))
         else:
             if self.is_admin or self.is_developer:
                 self.admin_section()
@@ -206,20 +246,23 @@ class TelegramTypePrivate(TelegramBase):
 
     def admin_section(self):
         if self.text in (self.language.get('admin_section', {}).get('admin_menu_button', '/admin'), '/admin'):
+            self.change_is_here('main_menu')
             self.telegram_api.send_message(
                 chat_id=self.chat_id,
                 text=self.language.get('admin_section', {}).get('admin_menu_message', 'Welcome to Admin Menu'),
                 reply_markup=self.replyMarkup.admin()
             )
         elif self.text == self.language.get('admin_section', {}).get('add_a_new_file', '/admin_add_new_file'):
-            self.member_info.update_member_info(is_here='add_a_new_file')
+            self.change_is_here('add_a_new_file')
             self.telegram_api.send_message(
                 chat_id=self.chat_id,
                 text=self.language.get('admin_section', {}).get('add_a_new_file_message', 'Send your files'),
                 reply_markup=self.replyMarkup.return_to_admin()
             )
         elif m := re.search(r'^add_a_new_file(?:_(\w+))?$', self.is_here):
-            self.handle_add_a_new_file(m.group(1))
+            if not self.handle_add_a_new_file(m.group(1)):
+                self.__send_unknown_problem(reply_markup=self.replyMarkup.admin())
+
         else:
             if self.is_developer:
                 self.developer_section()
@@ -228,6 +271,7 @@ class TelegramTypePrivate(TelegramBase):
 
     def developer_section(self):
         if self.text == '/developer':
+            self.change_is_here('main_menu')
             self.telegram_api.send_message(
                 chat_id=self.chat_id,
                 text=self.language.get('developer_menu_message', 'Welcome to Developer Menu'),

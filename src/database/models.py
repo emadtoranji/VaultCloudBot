@@ -5,6 +5,8 @@ from peewee import (
     MySQLDatabase, Model, CharField, DateTimeField,
     ForeignKeyField, TextField, BooleanField, IntegerField
 )
+
+from src.bot.telegram_api import TelegramAPI
 from src.config.config import DB_ADDR, DB_NAME, DB_PASS, DB_USER
 from src.utils.random_string import generate_random_string
 
@@ -91,9 +93,11 @@ class Files(BaseModel):
         self.file_ids = json.dumps(ids)
 
     def get_file_ids(self) -> list:
+        if not self.file_ids:
+            return []
         try:
             return json.loads(self.file_ids)
-        except:
+        except json.JSONDecodeError:
             return []
 
 

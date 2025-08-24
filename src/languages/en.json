@@ -3,7 +3,9 @@
     "start_message": "Welcome to VaultCloudBot",
     "start_menu_button": "Start Menu",
     "return_to_start_menu_button": "Return To Start Menu",
-    "wrong_command": "Wrong Command"
+    "wrong_command": "Wrong Command",
+    "unknown_problem": "Unknown problem, try again please",
+    "file_not_found": "The file could not be found or may have been deleted."
   },
   "admin_section": {
     "admin_menu_button": "Admin Menu",

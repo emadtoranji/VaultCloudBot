@@ -1,9 +1,11 @@
 {
   "global_section": {
     "start_message": "خوش آمدید به VaultCloudBot",
-    "start_menu_button": "منوی شروع",
-    "return_to_start_menu_button": "بازگشت به منوی شروع",
-    "wrong_command": "دستور نامعتبر"
+    "start_menu_button": "منوی اصلی",
+    "return_to_start_menu_button": "بازگشت به منوی اصلی",
+    "wrong_command": "دستور نامعتبر است",
+    "unknown_problem": "خطای ناشناخته, لطفا دوباره تلاش کنید",
+    "file_not_found": "فایل مورنظر یافت نشد."
   },
   "admin_section": {
     "admin_menu_button": "منوی مدیریت",
