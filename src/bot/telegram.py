@@ -5,7 +5,7 @@ from abc import abstractmethod, ABC
 from src.bot.reply_markup import ReplyMarkup
 from src.bot.incoming_data_parser import TelegramIncomingDataParser
 from src.config.config import TELEGRAM_USERNAME
-from src.database.models import Members, Files
+from src.database.models import Members, Files, FilesRemoveQueue
 from src.bot.telegram_api import TelegramAPI
 from src.languages.language import Language
 from src.utils.random_string import generate_random_string
@@ -137,10 +137,14 @@ class TelegramTypePrivate(TelegramBase):
                 if len(__db_recent_files_id):
                     for file_data in __db_recent_files_id:
                         file_data['data']['chat_id'] = self.chat_id
-                        self.telegram_api.send_request_to_api(
+                        response = self.telegram_api.send_request_to_api(
                             method=f"send{file_data['method']}",
                             data=file_data['data']
                         )
+                        __response_message_id = int(response.get('result', {}).get('message_id', 0))
+                        if __response_message_id:
+                            FilesRemoveQueue.insert(chat_id=self.chat_id, message_id=__response_message_id).execute()
+
                     return
         self.telegram_api.send_message(self.chat_id, text=self.language.get('global_section', {}).get(
             'file_not_found', 'File not found.'

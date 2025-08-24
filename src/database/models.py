@@ -6,7 +6,6 @@ from peewee import (
     ForeignKeyField, TextField, BooleanField, IntegerField
 )
 
-from src.bot.telegram_api import TelegramAPI
 from src.config.config import DB_ADDR, DB_NAME, DB_PASS, DB_USER
 from src.utils.random_string import generate_random_string
 
@@ -101,11 +100,20 @@ class Files(BaseModel):
             return []
 
 
+class FilesRemoveQueue(BaseModel):
+    chat_id = ForeignKeyField(Members, backref='files_remove_queue', field=Members.chat_id)
+    message_id = IntegerField(null=False)
+    created_time = DateTimeField(default=datetime.now)
+
+
 def init_database():
+    def __run_creator():
+        database.create_tables([Members, Files, FilesRemoveQueue], safe=True)
+
     if not os.path.exists(DB_MARKER_FILE):
         with database:
-            database.create_tables([Members, Files], safe=True)
+            __run_creator()
         open(DB_MARKER_FILE, "w").close()
     else:
         with database:
-            database.create_tables([Members, Files], safe=True)
+            __run_creator()
